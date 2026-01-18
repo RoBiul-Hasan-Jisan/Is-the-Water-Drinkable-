@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Quality AI</title>
+    <style>
+        /* Modern Reset & Base Styles */
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 650px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        /* Demo Controls Section */
+        .demo-panel {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .demo-title {
+            font-size: 14px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-demo {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-safe {
+            background-color: #dcfce7;
+            color: #166534;
+            border-color: #86efac;
+        }
+        .btn-safe:hover { background-color: #bbf7d0; }
+
+        .btn-unsafe {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-color: #fca5a5;
+        }
+        .btn-unsafe:hover { background-color: #fecaca; }
+
+        .load-msg {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* Form Grid Layout */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        /* Full width for the button */
+        .submit-btn {
+            grid-column: span 2;
+            margin-top: 10px;
+            background-color: var(--primary);
+            color: white;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Result Card */
+        .result-card {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .result-safe {
+            background-color: #dcfce7;
+            border: 2px solid #22c55e;
+            color: #14532d;
+        }
+
+        .result-unsafe {
+            background-color: #fee2e2;
+            border: 2px solid #ef4444;
+            color: #7f1d1d;
+        }
+
+        .result-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 500px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .submit-btn { grid-column: span 1; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>💧 Water Quality AI</h1>
+
+        <div class="demo-panel">
+            <div class="demo-title">Presentation Controls</div>
+            <div class="btn-group">
+                <a href="/?mode=safe" class="btn-demo btn-safe">Load SAFE Sample</a>
+                <a href="/?mode=unsafe" class="btn-demo btn-unsafe">Load UNSAFE Sample</a>
+            </div>
+            {% if load_msg %}
+                <p class="load-msg">✓ {{ load_msg }}</p>
+            {% endif %}
+        </div>
+
+        <form action="/predict" method="post" class="form-grid">
+            <div class="form-group">
+                <label>pH Level (0-14)</label>
+                <input type="number" step="any" name="ph" value="{{ form_data.ph }}" required>
+            </div>
+            <div class="form-group">
+                <label>Hardness (mg/L)</label>
+                <input type="number" step="any" name="Hardness" value="{{ form_data.Hardness }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Solids (TDS ppm)</label>
+                <input type="number" step="any" name="Solids" value="{{ form_data.Solids }}" required>
+            </div>
+            <div class="form-group">
+                <label>Chloramines (ppm)</label>
+                <input type="number" step="any" name="Chloramines" value="{{ form_data.Chloramines }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Sulfate (mg/L)</label>
+                <input type="number" step="any" name="Sulfate" value="{{ form_data.Sulfate }}" required>
+            </div>
+            <div class="form-group">
+                <label>Conductivity (μS/cm)</label>
+                <input type="number" step="any" name="Conductivity" value="{{ form_data.Conductivity }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Organic Carbon (ppm)</label>
+                <input type="number" step="any" name="Organic_carbon" value="{{ form_data.Organic_carbon }}" required>
+            </div>
+            <div class="form-group">
+                <label>Trihalomethanes (μg/L)</label>
+                <input type="number" step="any" name="Trihalomethanes" value="{{ form_data.Trihalomethanes }}" required>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Turbidity (NTU)</label>
+                <input type="number" step="any" name="Turbidity" value="{{ form_data.Turbidity }}" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Analyze Water Quality</button>
+        </form>
+
+        {% if prediction_text %}
+            <div class="result-card {% if 'NOT' in prediction_text %}result-unsafe{% else %}result-safe{% endif %}">
+                <h2 class="result-title">{{ prediction_text }}</h2>
+            </div>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>
